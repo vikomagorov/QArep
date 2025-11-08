@@ -1,17 +1,52 @@
 package org.example;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
+        Dog dog1 = new Dog("Бобик");
+        Dog dog2 = new Dog("Рэкс");
+        Cat cat1 = new Cat("Мурзик");
+        Cat cat2 = new Cat("Пушок");
+        Cat cat3 = new Cat("Снежок");
+
+        dog1.run(300);
+        dog1.swim(5);
+        cat1.run(250);
+        cat1.swim(3);
+
+        System.out.println("Всего животных: " + Animal.getAnimalsCount());
+        System.out.println("Собак: " + Dog.getDogsCount());
+        System.out.println("Котов: " + Cat.getCatsCount());
+        System.out.println("---------------");
+
+        // миска и коты
+        Bowl bowl = new Bowl(25); // в миске 25 ед. еды
+
+        Cat[] cats = {cat1, cat2, cat3};
+
+        for (Cat cat : cats) {
+            cat.eat(bowl, 10);
+        }
+
+        System.out.println("В миске осталось: " + bowl.getFood() + " ед.");
+        System.out.println("Сытость котов:");
+
+        for (Cat cat : cats) {
+            System.out.println(cat.name + ": " + (cat.isSatiety() ? "сыт" : "голоден"));
+        }
+
+        bowl.addFood(20);
+
+        for (Cat cat : cats) {
+            if (!cat.isSatiety()) {
+                cat.eat(bowl, 10);
+            }
+        }
+
+        System.out.println("В миске осталось: " + bowl.getFood());
+        System.out.println("Финальная сытость котов:");
+        for (Cat cat : cats) {
+            System.out.println(cat.name + ": " + (cat.isSatiety() ? "сыт" : "голоден"));
         }
     }
 }
