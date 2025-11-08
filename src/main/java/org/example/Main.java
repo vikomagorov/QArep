@@ -3,7 +3,7 @@ package org.example;
 public class Main {
     public static void main(String[] args) {
 
-        // ==== Часть 1: товары ====
+        // Товары
 
         Product[] productsArray = new Product[5];
 
