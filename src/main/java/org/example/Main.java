@@ -1,17 +1,17 @@
 package org.example;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import java.util.*;
+
 public class Main {
     public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+        PhoneBook pb = new PhoneBook();
+        pb.add("Иванов", "+375 29 111-11-11");
+        pb.add("Иванов", "+375 29 222-22-22");
+        pb.add("Петров", "+375 33 333-33-33");
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
-        }
+        System.out.println("\n— Телефонный справочник —");
+        System.out.println("Иванов -> " + pb.get("Иванов"));
+        System.out.println("Петров  -> " + pb.get("Петров"));
+        System.out.println("Сидоров -> " + pb.get("Сидоров"));
     }
 }
