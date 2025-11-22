@@ -1,32 +1,18 @@
 package org.example;
 
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import org.testng.annotations.Test;
+import static org.testng.Assert.*;
 
-class CalculatorTest {
+public class CalculatorTest {
 
-    @Test
-    void add_ok() {
-        assertEquals(7, Main.add(3, 4));
-    }
+    @Test public void add_ok() { assertEquals(Main.add(3,4), 7); }
 
-    @Test
-    void sub_ok() {
-        assertEquals(1, Main.sub(5, 4));
-    }
+    @Test public void sub_ok() { assertEquals(Main.sub(5,4), 1); }
 
-    @Test
-    void mul_ok() {
-        assertEquals(12, Main.mul(3, 4));
-    }
+    @Test public void mul_ok() { assertEquals(Main.mul(3,4), 12); }
 
-    @Test
-    void div_ok() {
-        assertEquals(2, Main.div(10, 5));
-    }
+    @Test public void div_ok() { assertEquals(Main.div(10,5), 2); }
 
-    @Test
-    void divByZero_throwsIAE() {
-        assertThrows(IllegalArgumentException.class, () -> Main.div(10, 0));
-    }
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void divByZero_throwsIAE() { Main.div(10, 0); }
 }

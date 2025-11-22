@@ -1,27 +1,27 @@
 package org.example;
 
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import org.testng.annotations.Test;
+import static org.testng.Assert.*;
 
-class FactorialTest {
+public class FactorialTest {
 
     @Test
-    void factorialOf0_is1() {
-        assertEquals(1L, Main.factorial(0));
+    public void factorialOf0_is1() {
+        assertEquals(Main.factorial(0), 1L);
     }
 
     @Test
-    void factorialOf5_is120() {
-        assertEquals(120L, Main.factorial(5));
+    public void factorialOf5_is120() {
+        assertEquals(Main.factorial(5), 120L);
     }
 
-    @Test
-    void factorialNegative_throwsIAE() {
-        assertThrows(IllegalArgumentException.class, () -> Main.factorial(-1));
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void factorialNegative_throwsIAE() {
+        Main.factorial(-1);
     }
 
-    @Test
-    void factorialOverflow_throwsArithmetic() {
-        assertThrows(ArithmeticException.class, () -> Main.factorial(21));
+    @Test(expectedExceptions = ArithmeticException.class)
+    public void factorialOverflow_throwsArithmetic() {
+        Main.factorial(21);
     }
 }

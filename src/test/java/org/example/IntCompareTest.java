@@ -1,22 +1,13 @@
 package org.example;
 
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import org.testng.annotations.Test;
+import static org.testng.Assert.*;
 
-class IntCompareTest {
+public class IntCompareTest {
 
-    @Test
-    void cmp_less_isMinus1() {
-        assertEquals(-1, Main.cmp(2, 3));
-    }
+    @Test public void cmp_less_isMinus1() { assertEquals(Main.cmp(2,3), -1); }
 
-    @Test
-    void cmp_equal_is0() {
-        assertEquals(0, Main.cmp(5, 5));
-    }
+    @Test public void cmp_equal_is0() { assertEquals(Main.cmp(5,5), 0); }
 
-    @Test
-    void cmp_greater_is1() {
-        assertEquals(1, Main.cmp(7, 3));
-    }
+    @Test public void cmp_greater_is1() { assertEquals(Main.cmp(7,3), 1); }
 }
