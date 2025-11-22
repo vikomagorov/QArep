@@ -5,7 +5,6 @@ import java.util.Scanner;
 
 public class Main {
 
-    // ===== 1) Факториал =====
     public static long factorial(int n) {
         if (n < 0) throw new IllegalArgumentException("n must be >= 0");
         long res = 1;
@@ -16,7 +15,6 @@ public class Main {
         return res;
     }
 
-    // ===== 2) Площадь треугольника (Герон) =====
     public static double triangleArea(double a, double b, double c) {
         if (a <= 0 || b <= 0 || c <= 0) throw new IllegalArgumentException("side must be > 0");
         if (a + b <= c || a + c <= b || b + c <= a)
@@ -25,7 +23,6 @@ public class Main {
         return Math.sqrt(p * (p - a) * (p - b) * (p - c));
     }
 
-    // ===== 3) Калькулятор с целыми =====
     public static int add(int a, int b) { return a + b; }
     public static int sub(int a, int b) { return a - b; }
     public static int mul(int a, int b) { return a * b; }
@@ -34,11 +31,8 @@ public class Main {
         return a / b;
     }
 
-    // ===== 4) Сравнение целых =====
-    /** -1 если a<b; 0 если a==b; 1 если a>b */
     public static int cmp(int a, int b) { return Integer.compare(a, b); }
 
-    // ===== Утилиты ввода =====
     private static int readInt(Scanner sc, String prompt) {
         while (true) {
             System.out.print(prompt);
@@ -46,7 +40,7 @@ public class Main {
             try {
                 return Integer.parseInt(line);
             } catch (NumberFormatException e) {
-                System.out.println("Введите целое число, пожалуйста.");
+                System.out.println("Введите целое число");
             }
         }
     }
@@ -58,20 +52,20 @@ public class Main {
             try {
                 return Double.parseDouble(line);
             } catch (NumberFormatException e) {
-                System.out.println("Введите число (можно с точкой), пожалуйста.");
+                System.out.println("Введите число");
             }
         }
     }
 
-    // ===== Меню =====
+
     public static void main(String[] args) {
         Locale.setDefault(Locale.US);
         Scanner sc = new Scanner(System.in);
 
         while (true) {
-            System.out.println("\n=== Меню ===");
+            System.out.println("\nМеню");
             System.out.println("1) Факториал числа");
-            System.out.println("2) Площадь треугольника (Герон)");
+            System.out.println("2) Площадь треугольника");
             System.out.println("3) Арифметика двух целых ( +  -  *  / )");
             System.out.println("4) Сравнение двух целых");
             System.out.println("0) Выход");

@@ -25,7 +25,6 @@
     </repositories>
 
     <dependencies>
-        <!-- JUnit 5: API+Engine вместе -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

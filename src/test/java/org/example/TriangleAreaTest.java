@@ -12,7 +12,6 @@ class TriangleAreaTest {
 
     @Test
     void nonTriangle_throwsIAE() {
-        // 1+2 == 3 -> неравенство треугольника нарушено
         assertThrows(IllegalArgumentException.class, () -> Main.triangleArea(1, 2, 3));
     }
 
