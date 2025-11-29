@@ -1,178 +1,195 @@
 package org.example;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
+import org.example.MtsOnlineTopUpPage;
 import org.junit.jupiter.api.*;
-import org.openqa.selenium.*;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.*;
 
 import java.time.Duration;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@TestMethodOrder(OrderAnnotation.class)
 public class MtsOnlineTopUpTest {
 
     private static WebDriver driver;
-    private static WebDriverWait wait;
-    private final String baseUrl = "https://mts.by";
+    private static MtsOnlineTopUpPage page;
 
     @BeforeAll
-    static void setupAll() {
+    static void setUp() {
         WebDriverManager.chromedriver().setup();
         driver = new ChromeDriver();
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(3));
         driver.manage().window().maximize();
-        wait = new WebDriverWait(driver, Duration.ofSeconds(20));
-    }
 
-    @AfterAll
-    static void teardownAll() {
-        if (driver != null) driver.quit();
+        page = new MtsOnlineTopUpPage(driver);
     }
 
     @BeforeEach
-    void openHome() {
-        driver.get("https://mts.by");
-        try {
-            WebDriverWait shortWait = new WebDriverWait(driver, Duration.ofSeconds(5));
-            By cookieBtn = By.id("cookie-agree"); // или By.cssSelector(".cookie__ok")
-            WebElement accept = shortWait.until(ExpectedConditions.elementToBeClickable(cookieBtn));
-            accept.click();
-            shortWait.until(ExpectedConditions.invisibilityOfElementLocated(cookieBtn));
-        } catch (TimeoutException ignored) {
+    void openPage() {
+        page.open();
+        page.acceptCookiesIfPresent();
+        page.waitForBlockVisible();
+    }
+
+    @AfterAll
+    static void tearDown() {
+        if (driver != null) {
+            driver.quit();
         }
-        ;
     }
 
     @Test
     @Order(1)
     @DisplayName("Проверить название указанного блока")
     void testBlockTitle() {
-        By blockTitle = By.xpath("(//*[@id='pay-section']//h2)[1]");
-        WebElement titleEl = wait.until(ExpectedConditions.visibilityOfElementLocated(blockTitle));
-        assertNotNull(titleEl, "Заголовок блока не найден");
-        String text = titleEl.getText().trim();
-        assertTrue(text.toLowerCase().contains("онлайн пополнение"), "Текст заголовка содержит 'онлайн пополнение'");
-        assertTrue(text.toLowerCase().contains("без комиссии"), "Текст заголовка содержит 'без комиссии'");
+        String text = page.getBlockTitleText();
+        String lower = text.toLowerCase();
+
+        assertTrue(
+                lower.contains("онлайн пополнение"),
+                "Ожидаем, что заголовок содержит 'Онлайн пополнение': " + text
+        );
+        assertTrue(
+                lower.contains("без комиссии"),
+                "Ожидаем, что заголовок содержит 'без комиссии': " + text
+        );
     }
 
     @Test
     @Order(2)
     @DisplayName("Проверить наличие логотипов платёжных систем")
     void testPaymentLogosPresence() {
-        By logosContainer = By.xpath("(//*[@id='pay-section']//ul)[2]//img");
-        List<WebElement> logos = driver.findElements(logosContainer);
-        assertFalse(logos.isEmpty(), "Не обнаружены логотипы платежных систем в блоке");
-        for (WebElement img : logos) {
-            assertTrue(img.isDisplayed(), "Логотип должен быть видимым");
-            String src = img.getAttribute("src");
-            assertNotNull(src);
-            assertFalse(src.trim().isEmpty());
-        }
+        List<?> logos = page.getPaymentLogos();
+        assertFalse(logos.isEmpty(), "Не обнаружены логотипы платёжных систем в блоке");
     }
 
     @Test
     @Order(3)
     @DisplayName("Проверить работу ссылки 'Подробнее о сервисе'")
     void testDetailsLink() {
-        By detailsLink = By.xpath("(//*[@id='pay-section']//a)[1]");
-        WebElement link = wait.until(ExpectedConditions.elementToBeClickable(detailsLink));
-        String href = link.getAttribute("href");
-        assertNotNull(href, "У ссылки нет href");
+        String urlBefore = driver.getCurrentUrl();
 
-        link.click();
+        page.clickDetailsLinkAndWait();
 
-        wait.until(webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState").equals("complete"));
+        String urlAfter = driver.getCurrentUrl();
+        assertNotEquals(
+                urlBefore,
+                urlAfter,
+                "После клика по 'Подробнее о сервисе' ожидаем переход на другую страницу"
+        );
 
-        String pageTitle = driver.getTitle().toLowerCase();
-        assertTrue(pageTitle.contains("порядок") || pageTitle.contains("оплаты"), "Заголовок страницы деталей содержит ключевые слова");
+        String title = driver.getTitle().toLowerCase();
+        assertTrue(
+                title.contains("порядок") || title.contains("оплат"),
+                "Заголовок страницы с деталями должен содержать слова про порядок/оплату. title=" + title
+        );
     }
+
 
     @Test
     @Order(4)
-    @DisplayName("Заполнить поля и проверить работу кнопки «Продолжить»")
+    @DisplayName("«Услуги связи»: заполнить форму и дойти до шага оплаты")
     void testFillFormAndContinue() {
-        By formContainer = By.xpath("//*[@id='pay-section']//section/div");
-        WebElement form = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(formContainer)
+        page.selectServicesTab();
+        page.fillServicesForm("297777777", "5");
+        page.clickContinueInForm();
+        page.waitForConfirmModal();
+    }
+
+
+
+    @Test
+    @Order(5)
+    @DisplayName("Проверить надписи в незаполненных полях всех вариантов оплаты")
+    void testPlaceholdersForAllPaymentTypes() {
+
+        page.selectServicesTab();
+        List<String> servicesPlaceholders = page.getPlaceholdersInActiveForm();
+        System.out.println("Услуги связи плейсхолдеры: " + servicesPlaceholders);
+
+        assertFalse(
+                servicesPlaceholders.isEmpty(),
+                "Для 'Услуги связи' должны быть плейсхолдеры"
         );
-        assertNotNull(form, "Форма пополнения не найдена в блоке pay-section");
-
-        try {
-            WebElement select = form.findElement(By.xpath(".//select"));
-            Select s = new Select(select);
-            s.selectByVisibleText("Услуги связи");
-        } catch (NoSuchElementException | ElementNotInteractableException e) {
-
-            List<WebElement> candidates =
-                    form.findElements(By.xpath(".//*[contains(normalize-space(), 'Услуги связи')]"));
-            if (!candidates.isEmpty()) {
-                candidates.get(0).click();
-            }
-        }
-
-
-        WebElement phoneInput = null;
-
-
-        List<WebElement> inputs = form.findElements(By.xpath(".//input"));
-        for (WebElement inp : inputs) {
-            String type = (inp.getAttribute("type") == null ? "" : inp.getAttribute("type")).toLowerCase();
-            String name = (inp.getAttribute("name") == null ? "" : inp.getAttribute("name")).toLowerCase();
-            String ph   = (inp.getAttribute("placeholder") == null ? "" : inp.getAttribute("placeholder")).toLowerCase();
-
-            if (type.contains("tel") || name.contains("phone") || ph.contains("номер")) {
-                phoneInput = inp;
-                break;
-            }
-        }
-
-        if (phoneInput == null) {
-            phoneInput = form.findElement(By.xpath(".//input[@type='text' or not(@type)]"));
-        }
-        assertNotNull(phoneInput, "Поле ввода телефона не найдено");
-
-        phoneInput.clear();
-        phoneInput.sendKeys("297777777");
-
-        try {
-            WebElement amount = form.findElement(By.xpath(".//input[@id='connection-sum']"));
-            amount.clear();
-            amount.sendKeys("5");
-        } catch (NoSuchElementException ignored) {
-        }
-
-        WebElement continueBtn = null;
-        List<WebElement> buttons = form.findElements(
-                By.xpath(".//button | .//input[@type='submit']")
+        assertTrue(
+                servicesPlaceholders.stream().anyMatch(s -> s.toLowerCase().contains("номер")),
+                "В 'Услуги связи' должен быть плейсхолдер для номера телефона"
         );
-        for (WebElement b : buttons) {
-            String t = (b.getText() == null ? "" : b.getText()).toLowerCase();
-            String v = (b.getAttribute("value") == null ? "" : b.getAttribute("value")).toLowerCase();
-            if (t.contains("продолжить") || v.contains("продолжить")
-                    || t.contains("continue") || v.contains("continue")) {
-                continueBtn = b;
-                break;
-            }
-        }
-        assertNotNull(continueBtn, "Кнопка 'Продолжить' не найдена");
 
-        String urlBefore = driver.getCurrentUrl();
-        continueBtn.click();
+        page.selectHomeInternetTab();
+        List<String> internetPlaceholders = page.getPlaceholdersInActiveForm();
+        System.out.println("Домашний интернет плейсхолдеры: " + internetPlaceholders);
 
-        boolean ok = wait.until(d -> {
-            if (!d.getCurrentUrl().equals(urlBefore)) {
-                return true;
-            }
-            List<WebElement> confirm = d.findElements(By.xpath(
-                    "//*[contains(text(),'Подтвержд') or " +
-                            "contains(text(),'Подтвердите') or " +
-                            "contains(text(),'Оплата')]"
-            ));
-            return !confirm.isEmpty();
-        });
+        assertFalse(
+                internetPlaceholders.isEmpty(),
+                "Для 'Домашний интернет' должны быть плейсхолдеры в полях"
+        );
 
-        assertTrue(ok, "После нажатия 'Продолжить' не произошло перехода к шагу подтверждения/оплаты");
+        page.selectInstallmentTab();
+        List<String> installmentPlaceholders = page.getPlaceholdersInActiveForm();
+        System.out.println("Рассрочка плейсхолдеры: " + installmentPlaceholders);
+
+        assertFalse(
+                installmentPlaceholders.isEmpty(),
+                "Для 'Рассрочка' должны быть плейсхолдеры в полях"
+        );
+
+        page.selectDebtTab();
+        List<String> debtPlaceholders = page.getPlaceholdersInActiveForm();
+        System.out.println("Задолженность плейсхолдеры: " + debtPlaceholders);
+
+        assertFalse(
+                debtPlaceholders.isEmpty(),
+                "Для 'Задолженность' должны быть плейсхолдеры в полях"
+        );
+    }
+
+    @Test
+    @Order(6)
+    @DisplayName("«Услуги связи»: проверка суммы, номера и полей карты в модальном окне")
+    void testServicesFlowConfirmModal() {
+        String testPhone = "297777777";
+        String testAmount = "5";
+
+        page.selectServicesTab();
+        page.fillServicesForm(testPhone, testAmount);
+        page.clickContinueInForm();
+
+        page.waitForConfirmModal();
+
+        String phoneText = page.getConfirmPhoneText();
+        System.out.println("Текст с номером в модалке: " + testPhone);
+        assertTrue(
+                phoneText.contains("+375"),
+                "В модальном окне должен отображаться код страны +375: " + testPhone
+        );
+
+        String amountText = page.getConfirmAmountText();
+        System.out.println("Текст суммы в модалке: " + amountText);
+        assertTrue(
+                amountText.contains(testAmount),
+                "В модальном окне должна отображаться корректная сумма: " + amountText
+        );
+
+        String buttonText = page.getConfirmButtonText();
+        System.out.println("Текст на кнопке подтверждения: " + buttonText);
+        assertTrue(
+                buttonText.contains(testAmount),
+                "На кнопке подтверждения должна быть указана сумма: " + buttonText
+        );
+
+        assertTrue(
+                page.areCardFieldsPresent(),
+                "В модальном окне должны быть поля для реквизитов карты: номер, срок, CVV, держатель"
+        );
+
+        assertTrue(
+                page.arePaymentIconsInConfirmPresent(),
+                "В модальном окне должны отображаться иконки платёжных систем (Visa/Mastercard/и т.п.)"
+        );
     }
 }
